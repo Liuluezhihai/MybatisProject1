@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 命名空间必须与接口全限定名一致 -->
+<mapper namespace="com.lab.mapper.DeptMapper">
+
+    <!-- 查询全部：resultType 使用 typeAliases 中配置的别名 Dept -->
+    <select id="selectAll" resultType="Dept">
+        select deptno, dname, loc
+        from dept
+    </select>
+
+    <!-- 根据编号查询 -->
+    <select id="selectById" resultType="Dept">
+        select deptno, dname, loc
+        from dept
+        where deptno = #{deptno}
+    </select>
+
+    <!-- 新增：useGeneratedKeys 将自增主键回填到 dept.deptno -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="deptno">
+        insert into dept (dname, loc)
+        values (#{dname}, #{loc})
+    </insert>
+
+    <!-- 修改 -->
+    <update id="update">
+        update dept
+        set dname = #{dname},
+            loc   = #{loc}
+        where deptno = #{deptno}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteById">
+        delete from dept where deptno = #{deptno}
+    </delete>
+</mapper>

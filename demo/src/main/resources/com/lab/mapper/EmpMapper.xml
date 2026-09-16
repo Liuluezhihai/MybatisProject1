@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 命名空间必须与接口全限定名一致 -->
+<mapper namespace="com.lab.mapper.EmpMapper">
+
+    <!-- 查询全部：resultType 使用 typeAliases 中配置的别名 Emp -->
+    <select id="selectAll" resultType="Emp">
+        select empno, ename, job, mgr, hiredate, sal, comm, deptno
+        from emp
+    </select>
+
+    <!-- 根据编号查询 -->
+    <select id="selectById" resultType="Emp">
+        select empno, ename, job, mgr, hiredate, sal, comm, deptno
+        from emp
+        where empno = #{empno}
+    </select>
+
+    <!-- 新增：useGeneratedKeys 将自增主键回填到 emp.empno -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="empno">
+        insert into emp (ename, job, mgr, hiredate, sal, comm, deptno)
+        values (#{ename}, #{job}, #{mgr}, #{hiredate}, #{sal}, #{comm}, #{deptno})
+    </insert>
+
+    <!-- 修改 -->
+    <update id="update">
+        update emp
+        set ename    = #{ename},
+            job      = #{job},
+            mgr      = #{mgr},
+            hiredate = #{hiredate},
+            sal      = #{sal},
+            comm     = #{comm},
+            deptno   = #{deptno}
+        where empno = #{empno}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteById">
+        delete from emp where empno = #{empno}
+    </delete>
+</mapper>
