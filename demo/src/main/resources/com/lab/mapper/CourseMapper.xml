@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lab.mapper.CourseMapper">
+
+    <select id="selectAll" resultType="Course">
+        select cid, cname, teacher, credit, hours
+        from course
+    </select>
+
+    <select id="selectById" resultType="Course">
+        select cid, cname, teacher, credit, hours
+        from course
+        where cid = #{cid}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="cid">
+        insert into course (cname, teacher, credit, hours)
+        values (#{cname}, #{teacher}, #{credit}, #{hours})
+    </insert>
+
+    <update id="update">
+        update course
+        set cname   = #{cname},
+            teacher = #{teacher},
+            credit  = #{credit},
+            hours   = #{hours}
+        where cid = #{cid}
+    </update>
+
+    <delete id="deleteById">
+        delete from course where cid = #{cid}
+    </delete>
+</mapper>

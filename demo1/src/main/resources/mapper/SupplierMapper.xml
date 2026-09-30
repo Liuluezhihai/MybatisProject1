@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.demo1.mapper.SupplierMapper">
+
+    <!-- 全部供应商（前端下拉框，保持 resultType 简单映射） -->
+    <select id="selectAll" resultType="Supplier">
+        SELECT id, name, contact
+        FROM supplier
+        ORDER BY id
+    </select>
+
+    <!--
+        查询2 结果映射：某供应商（外层） + 其提供过的所有商品（<collection>）
+        每个商品带购买客户 + 该供应商是否服务该客户。
+        注意：LEFT JOIN sale/customer 保证未售出商品也能查出来，
+        此时 customer_id 为 NULL，sold=0，serves_customer=0。
+    -->
+    <resultMap id="SupplierProductViewMap" type="SupplierProductView">
+        <id column="supplier_id" property="supplierId"/>
+        <result column="supplier_name" property="supplierName"/>
+        <!-- 一对多：一个供应商提供多种商品 -->
+        <collection property="products" ofType="ProductBuyerView">
+            <id column="product_id" property="productId"/>
+            <result column="product_name" property="productName"/>
+            <result column="price" property="price"/>
+            <!-- sold 由 SQL CASE 计算：sale 记录存在=已售出，否则未售出 -->
+            <result column="sold" property="sold"/>
+            <result column="customer_id" property="customerId"/>
+            <result column="customer_name" property="customerName"/>
+            <result column="sale_time" property="saleTime"/>
+            <result column="serves_customer" property="servesCustomer"/>
+        </collection>
+    </resultMap>
+
+    <!--
+        查询2：某供应商提供过的所有商品（含未售出）
+        - supplier -> supplier_product -> product（多对多 JOIN）
+        - LEFT JOIN sale / customer 保证未售出商品也能被查出来
+        - sold 字段由 CASE WHEN sale 存在 计算，替代原 Java 层 customerId != null 的逻辑
+        - ORDER BY p.id 保证 MyBatis collection 按正确顺序组装
+    -->
+    <select id="selectSupplierProducts" resultMap="SupplierProductViewMap">
+        SELECT s.id     AS supplier_id,
+               s.name   AS supplier_name,
+               p.id     AS product_id,
+               p.name   AS product_name,
+               p.price  AS price,
+               CASE WHEN sa.id IS NOT NULL THEN TRUE ELSE FALSE END AS sold,
+               c.id     AS customer_id,
+               c.name   AS customer_name,
+               DATE_FORMAT(sa.sale_time, '%Y-%m-%d %H:%i:%s') AS sale_time,
+               EXISTS(SELECT 1
+                      FROM supplier_customer sc
+                      WHERE sc.supplier_id = s.id
+                        AND sc.customer_id = c.id) AS serves_customer
+        FROM supplier s
+                 JOIN supplier_product sp ON sp.supplier_id = s.id
+                 JOIN product p ON p.id = sp.product_id
+                 LEFT JOIN sale sa ON sa.product_id = p.id
+                 LEFT JOIN customer c ON c.id = sa.customer_id
+        WHERE s.id = #{supplierId}
+        ORDER BY p.id
+    </select>
+
+</mapper>

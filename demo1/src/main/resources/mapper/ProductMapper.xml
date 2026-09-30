@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.demo1.mapper.ProductMapper">
+
+    <!--
+        查询1 结果映射：一件已售商品（外层） + 一个购买客户 + 多个供货供应商（<collection>）
+        每个供应商带 "是否服务该客户" 标记。
+        MyBatis 依据 resultMap 的 <id column="product_id"> 自动把相同商品的多行
+        supplier 收集到 suppliers 集合里。
+    -->
+    <resultMap id="SoldProductViewMap" type="SoldProductView">
+        <id column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="price" property="price"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="customer_name" property="customerName"/>
+        <result column="sale_time" property="saleTime"/>
+        <!-- 一对多：一件商品有多个供货供应商 -->
+        <collection property="suppliers" ofType="SupplierServiceView">
+            <id column="supplier_id" property="supplierId"/>
+            <result column="supplier_name" property="supplierName"/>
+            <result column="serves_customer" property="servesCustomer"/>
+        </collection>
+    </resultMap>
+
+    <!--
+        查询1：已经销售出去的商品
+        - sale INNER JOIN product / customer（商品必须已售出）
+        - supplier_product INNER JOIN supplier（多对多，一件商品可被多个供应商供货）
+        - EXISTS 子查询计算 "该供应商是否服务该购买客户"
+        - ORDER BY p.id 保证 MyBatis collection 按正确顺序组装
+    -->
+    <select id="selectSoldProducts" resultMap="SoldProductViewMap">
+        SELECT p.id     AS product_id,
+               p.name   AS product_name,
+               p.price  AS price,
+               c.id     AS customer_id,
+               c.name   AS customer_name,
+               DATE_FORMAT(sa.sale_time, '%Y-%m-%d %H:%i:%s') AS sale_time,
+               s.id     AS supplier_id,
+               s.name   AS supplier_name,
+               EXISTS(SELECT 1
+                      FROM supplier_customer sc
+                      WHERE sc.supplier_id = s.id
+                        AND sc.customer_id = c.id) AS serves_customer
+        FROM sale sa
+                 JOIN product p ON p.id = sa.product_id
+                 JOIN customer c ON c.id = sa.customer_id
+                 JOIN supplier_product sp ON sp.product_id = p.id
+                 JOIN supplier s ON s.id = sp.supplier_id
+        ORDER BY p.id, s.id
+    </select>
+
+</mapper>

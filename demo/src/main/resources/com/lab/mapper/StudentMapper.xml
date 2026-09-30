@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lab.mapper.StudentMapper">
+
+    <!-- ======= Commit 2：自定义 resultMap（演示手动映射）======= -->
+    <resultMap id="studentMap" type="Student">
+        <id     property="sid"    column="sid"/>
+        <result property="sname"  column="sname"/>
+        <result property="gender" column="gender"/>
+        <result property="age"    column="age"/>
+        <result property="major"  column="major"/>
+        <result property="phone"  column="phone"/>
+    </resultMap>
+
+    <!-- ======= Commit 2：公共 SQL 列片段 ======= -->
+    <sql id="studentColumns">
+        sid, sname, gender, age, major, phone
+    </sql>
+
+    <!-- Commit 2：按规范改为 resultMap="studentMap" -->
+    <select id="selectAll" resultMap="studentMap">
+        SELECT <include refid="studentColumns"/> FROM student
+    </select>
+
+    <select id="selectById" resultMap="studentMap">
+        SELECT <include refid="studentColumns"/> FROM student WHERE sid = #{sid}
+    </select>
+
+    <!-- selectByName：Commit 2 未要求改，保持 resultType -->
+    <select id="selectByName" resultType="Student">
+        SELECT <include refid="studentColumns"/> FROM student
+        WHERE sname LIKE CONCAT('%', #{sname}, '%')
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="sid">
+        INSERT INTO student (sname, gender, age, major, phone)
+        VALUES (#{sname}, #{gender}, #{age}, #{major}, #{phone})
+    </insert>
+
+    <update id="update">
+        UPDATE student
+        SET sname  = #{sname},
+            gender = #{gender},
+            age    = #{age},
+            major  = #{major},
+            phone  = #{phone}
+        WHERE sid = #{sid}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM student WHERE sid = #{sid}
+    </delete>
+
+    <!-- ========== Commit 3：动态 SQL（if/where + set）========== -->
+
+    <!-- if + where：多条件拼接，<where> 自动去除开头多余的 AND -->
+    <select id="selectByCondition" parameterType="Student" resultMap="studentMap">
+        SELECT <include refid="studentColumns"/> FROM student
+        <where>
+            <if test="sname != null and sname != ''">
+                AND sname LIKE CONCAT('%', #{sname}, '%')
+            </if>
+            <if test="gender != null and gender != ''">
+                AND gender = #{gender}
+            </if>
+            <if test="major != null and major != ''">
+                AND major LIKE CONCAT('%', #{major}, '%')
+            </if>
+            <if test="age != null">
+                AND age = #{age}
+            </if>
+        </where>
+    </select>
+
+    <!-- set 标签：只 SET 传入的非 null 字段，自动去除末尾多余逗号 -->
+    <update id="updateDynamic" parameterType="Student">
+        UPDATE student
+        <set>
+            <if test="sname != null">sname = #{sname},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="age != null">age = #{age},</if>
+            <if test="major != null">major = #{major},</if>
+            <if test="phone != null">phone = #{phone},</if>
+        </set>
+        WHERE sid = #{sid}
+    </update>
+
+    <!-- ========== Commit 4：动态 SQL（foreach + choose）========== -->
+
+    <!-- foreach + IN：批量删除 -->
+    <delete id="deleteBatch">
+        DELETE FROM student WHERE sid IN
+        <foreach collection="sids" item="sid" open="(" separator="," close=")">
+            #{sid}
+        </foreach>
+    </delete>
+
+    <!-- foreach + VALUES (...),(...),...：批量插入 -->
+    <insert id="insertBatch">
+        INSERT INTO student (sname, gender, age, major, phone) VALUES
+        <foreach collection="list" item="s" separator=",">
+            (#{s.sname}, #{s.gender}, #{s.age}, #{s.major}, #{s.phone})
+        </foreach>
+    </insert>
+
+    <!-- choose/when/otherwise：优先精确查姓名 → 否则按专业查 → 否则查全部 -->
+    <select id="selectByChoose" parameterType="Student" resultMap="studentMap">
+        SELECT <include refid="studentColumns"/> FROM student
+        <choose>
+            <when test="sname != null and sname != ''">
+                WHERE sname = #{sname}
+            </when>
+            <when test="major != null and major != ''">
+                WHERE major = #{major}
+            </when>
+            <otherwise>
+                <!-- 无 WHERE 条件，查全部 -->
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+    "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lab.mapper.StudentCourseMapper">
+
+    <select id="selectAll" resultType="StudentCourse">
+        select sid, cid, score from student_course
+    </select>
+
+    <select id="selectBySid" resultType="StudentCourse">
+        select sid, cid, score from student_course where sid = #{sid}
+    </select>
+
+    <select id="selectByCid" resultType="StudentCourse">
+        select sid, cid, score from student_course where cid = #{cid}
+    </select>
+
+    <select id="selectBySidAndCid" resultType="StudentCourse">
+        select sid, cid, score
+        from student_course
+        where sid = #{sid} and cid = #{cid}
+    </select>
+
+    <!-- 联合主键，自增主键回填不适用（无自增列） -->
+    <insert id="insert">
+        insert into student_course (sid, cid, score)
+        values (#{sid}, #{cid}, #{score})
+    </insert>
+
+    <update id="updateScore">
+        update student_course
+        set score = #{score}
+        where sid = #{sid} and cid = #{cid}
+    </update>
+
+    <delete id="deleteBySidAndCid">
+        delete from student_course where sid = #{sid} and cid = #{cid}
+    </delete>
+
+    <delete id="deleteBySid">
+        delete from student_course where sid = #{sid}
+    </delete>
+
+    <delete id="deleteByCid">
+        delete from student_course where cid = #{cid}
+    </delete>
+</mapper>
