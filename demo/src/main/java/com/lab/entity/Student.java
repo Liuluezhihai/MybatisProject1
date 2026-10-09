@@ -1,5 +1,9 @@
 package com.lab.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 /**
  * 学生实体类，对应表 student
  * sid     int unsigned auto_increment primary key  学生编号
@@ -8,9 +12,14 @@ package com.lab.entity;
  * age     tinyint unsigned                         年龄
  * major   varchar(30)                              专业
  * phone   varchar(15)                              手机号
+ *
+ * MP 注解：@TableName 指定表名；@TableId 指定主键及自增策略。
+ * 其余字段名与列名一致，无需 @TableField。
  */
+@TableName("student")
 public class Student {
 
+    @TableId(value = "sid", type = IdType.AUTO)
     private Integer sid;
     private String sname;
     private String gender;

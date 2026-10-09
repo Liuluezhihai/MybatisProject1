@@ -1,15 +1,19 @@
 package com.lab.util;
 
+import com.baomidou.mybatisplus.core.MybatisSqlSessionFactoryBuilder;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * MyBatis 工具类：SqlSessionFactory 全局只构建一次，避免重复创建
+ * MyBatis-Plus 工具类：SqlSessionFactory 全局只构建一次，避免重复创建
+ *
+ * 注意：必须使用 MP 提供的 MybatisSqlSessionFactoryBuilder（而非原生
+ * SqlSessionFactoryBuilder）构建工厂，否则 BaseMapper 注入的通用 CRUD
+ * 方法会报 Invalid bound statement (not found)。
  */
 public class MyBatisUtil {
 
@@ -17,7 +21,7 @@ public class MyBatisUtil {
 
     static {
         try (InputStream in = Resources.getResourceAsStream("mybatis-config.xml")) {
-            FACTORY = new SqlSessionFactoryBuilder().build(in);
+            FACTORY = new MybatisSqlSessionFactoryBuilder().build(in);
         } catch (IOException e) {
             throw new ExceptionInInitializerError("加载 mybatis-config.xml 失败: " + e.getMessage());
         }

@@ -1,5 +1,6 @@
 package com.lab.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.lab.entity.Student;
 import org.apache.ibatis.annotations.Param;
 
@@ -7,8 +8,12 @@ import java.util.List;
 
 /**
  * 学生表 Mapper 接口
+ *
+ * 继承 BaseMapper<Student> 后即获得零 SQL 通用方法：
+ * insert / deleteById / updateById / selectById / selectList / selectPage 等，
+ * 与 XML 中原有自定义方法共存（同名 statement 以 XML 定义优先）。
  */
-public interface StudentMapper {
+public interface StudentMapper extends BaseMapper<Student> {
 
     /** 查询全部学生 */
     List<Student> selectAll();
